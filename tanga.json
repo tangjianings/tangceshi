@@ -1,0 +1,198 @@
+{
+ 
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "app.yml定义文件",
+    "type": "object",    
+    "properties":{
+        "name": {
+            "type": "string",
+            "description": "流水线名称"
+        },
+        "cluster": {
+            "type": "string",
+            "description": "集群"
+        },
+        "parameters":{
+            "type": "object",
+            "description": "流水线参数",
+            "required": ["initial_status"],
+            "properties": {
+                "initial_status": {
+                    "type": "string",
+                    "description": "流水线初始化状态"
+                }
+            }
+        },  
+        "jobs": {
+            "type": "object",
+            "description": "处理模块,可定义多个",
+            "patternProperties": {
+                "[/s/S]*": {
+                    "type": "object",
+                    "required": ["label","base_image"],
+                    "description": "处理模块名称",
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "description": "处理模块中文名称"
+                        },
+                        "base_image": {
+                            "description": "处理模块镜像地址",
+                            "anyOf": [
+                                {  
+                                "type": "string"
+                                },
+                                {  "type": "string",
+                                    "enum": ["hub.cstcloud.cn/fast/interleaved-merge-group",
+                                             "hub.cstcloud.cn/scalebox/rsync-copy",
+                                             "hub.cstcloud.cn/fast/fits2fil",
+                                             "hub.cstcloud.cn/scalebox/message-relay"
+                                            ]                                    
+                                }
+
+                            ]
+                        },
+                        "schedule_mode": {
+                            "description": "",
+                            "anyOf": [
+                                {  
+                                "type": "string"
+                                },
+                                {  "type": "string",
+                                    "enum": ["HEAD"]                                    
+                                }
+
+                            ]
+                        },
+                        "parameters": {
+                            "type": "object",
+                            "description": "处理模块相关参数",
+                            "required": [],
+                            "properties": {
+                                "key_group_regex": {
+                                    "description": "",
+                                    "anyOf": [
+                                        {  
+                                        "type": "string"
+                                        },
+                                        {  "type": "string",
+                                            "enum": ["${FITS_REGEX}"]                                    
+                                        }
+
+                                    ]
+                                },
+                                "key_group_seq": {
+                                    "description": "",
+                                    "anyOf": [
+                                        {  
+                                        "type": "string"
+                                        },
+                                        {  "type": "string",
+                                            "enum": ["${FITS_SEQ}"]                                    
+                                        }
+
+                                    ]
+                                },
+                                "tasks_per_queue": {
+                                    "description": "",
+                                    "anyOf": [
+                                        {  
+                                        "type": "integer"
+                                        },
+                                        {  "type": "integer",
+                                            "enum": [300]                                    
+                                        }
+
+                                    ]
+                                }
+                            }
+                        },
+                        "paths": {
+                            "description": "处理模块路径",
+                            "anyOf": [
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                      "type": "string"
+                                   }
+                                },
+                                {  "type": "array",
+                                   "items": {
+                                        "type": "string",
+                                        "enum": ["/:/local:ro", 
+                                                 "/:/local", 
+                                                 "${LOCAL_SOURCE_URL}:/input:ro",
+                                                 "${DATASET_TMP_PATH}/merged:/output"
+                                                ]
+                                    }
+                                }
+                            ]  
+                        },
+                        "environments": {
+                            "description": "处理模块环境变量",
+                            "anyOf": [
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                      "type": "string"
+                                   }
+                                },
+                                {  "type": "array",
+                                   "items": {
+                                        "type": "string",
+                                        "enum": ["SOURCE_URL=${DATASET_TMP_PATH}/merged", 
+                                                 "TARGET_URL=${TARGET_URL}/merged", 
+                                                 "RSYNC_PASSWORD=",
+                                                 "SERVER_CONTAINERIZED=",
+                                                 "ENABLE_LOCAL_RELAY=",
+                                                 "RAM_DISK_GB=",
+                                                 "BITS_PER_POINT=${BITS_PER_POINT}",
+                                                 "REMOTE_JOB_ID=${REMOTE_JOB_ID}",
+                                                 "REMOTE_SINK_JOB=${REMOTE_SINK_JOB}",
+                                                 "REMOTE_GRPC_SERVER=${REMOTE_GRPC_SERVER}"
+                                                ]
+                                    }
+                                }
+                            ]  
+                        },
+                        "hosts": {
+                            "description": "",
+                            "anyOf": [
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                      "type": "string"
+                                   }
+                                },
+                                {  "type": "array",
+                                   "items": {
+                                        "type": "string",
+                                        "enum": ["${MERGE_HOSTS}:${NP_MERGE}", 
+                                                 "${PUSH_HOSTS}:${NP_PUSH}"
+                                                ]
+                                    }
+                                }
+                            ]  
+                        },
+
+
+                        "sink_jobs": {
+                            "type": "array",
+                            "description": "当前模块下级处理模块",
+                            "items": {
+                                "type": "string"
+                                
+                            }
+                        }
+                    }
+
+                }
+            }
+            
+        }
+           
+    }, 
+    "required": [
+       "name","jobs"
+    ]
+}
